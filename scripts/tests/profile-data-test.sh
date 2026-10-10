@@ -234,6 +234,8 @@ grep -Fq 'SukiSU-Ultra-with-KPM|SukiSU-Ultra-with-susfs-KPM|SukiSU-Ultra-with-su
   || fail "resolver does not route all SukiSU presets to SukiSU Ultra"
 grep -Fq 'SUSFS_COMMIT="$(sukisu_compatible_susfs_commit "$SUSFS_REF")"' "$RESOLVER_SCRIPT" \
   || fail "resolver does not use the SukiSU-compatible SUSFS commit map"
+grep -Fq 'KSU_COMMIT="$(sukisu_compatible_commit)"' "$RESOLVER_SCRIPT" \
+  || fail "resolver does not pin SukiSU SUSFS presets to a tested commit"
 grep -Fq '"SukiSU-Ultra-with-KPM"|"SukiSU-Ultra-with-susfs-KPM"|"SukiSU-Ultra-with-susfs-nomount-KPM"|"SukiSU-Ultra-with-susfs-zeromount-KPM")' "$KSU_SETUP_SCRIPT" \
   || fail "KernelSU setup does not install SukiSU Ultra for all combined presets"
 grep -Fq 'ZEROMOUNT_COMMIT="2978dcad87dc7055e2e4596c603313c553a9a4b4"' "$RESOLVER_SCRIPT" \
@@ -312,6 +314,8 @@ assert_eq "aab99ba7693d94489fd32f1cc4c9d58396fffeee" \
   "$(sukisu_compatible_susfs_commit gki-android14-5.15)" "SukiSU Android 14 5.15 SUSFS pin"
 assert_eq "6c2b5042ec656cd3ce9ad352a1e226e2e9e26779" \
   "$(sukisu_compatible_susfs_commit gki-android14-6.1)" "SukiSU Android 14 6.1 SUSFS pin"
+assert_eq "86e9b3bf00724b0f649709b8317f0475caf9e8ae" \
+  "$(sukisu_compatible_commit)" "SukiSU SUSFS KernelSU pin"
 if sukisu_compatible_susfs_commit unsupported >/dev/null 2>&1; then
   fail "unknown SukiSU SUSFS branches must not silently fall back to HEAD"
 fi

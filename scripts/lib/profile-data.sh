@@ -341,6 +341,11 @@ sukisu_compatible_susfs_commit() {
   esac
 }
 
+sukisu_compatible_commit() {
+  # Keep SukiSU SUSFS presets on a tested revision while upstream main evolves.
+  echo "86e9b3bf00724b0f649709b8317f0475caf9e8ae"
+}
+
 infer_android_versions() {
   local branch="$1"
 

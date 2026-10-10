@@ -124,7 +124,10 @@ case "$KSU_TYPE" in
     ;;
 esac
 
-if [[ -n "$KSU_REPO" ]]; then
+if [[ "$KSU_TYPE" == SukiSU-Ultra-with-susfs* ]]; then
+  KSU_COMMIT="$(sukisu_compatible_commit)"
+  echo "::notice::Using pinned SukiSU Ultra commit $KSU_COMMIT for SUSFS compatibility."
+elif [[ -n "$KSU_REPO" ]]; then
   KSU_COMMIT="$(git_ls_remote_retry --exit-code "$KSU_REPO" "refs/heads/${KSU_REF}" \
     | awk 'NR == 1 {print $1}')"
   if [[ ! "$KSU_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
