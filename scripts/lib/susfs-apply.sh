@@ -141,6 +141,8 @@ resolve_known_sukisu_susfs_rejects() {
   local ksu_repo_dir="$1"
   local ksu_dir="$2"
   local init_file="${ksu_dir}/core/init.c"
+  local ksu_header_file="${ksu_dir}/include/ksu.h"
+  local dispatch_file="${ksu_dir}/supercall/dispatch.c"
   local kernel_umount_file="${ksu_dir}/feature/kernel_umount.c"
   local allowlist_file="${ksu_dir}/policy/allowlist.c"
   local kbuild_file="${ksu_dir}/Kbuild"
@@ -150,6 +152,7 @@ resolve_known_sukisu_susfs_rejects() {
   local reject
   local relative_reject
   local has_policy_drift=0
+  local has_info_flag_drift=0
   local reject_files=()
   local reject_relatives=()
 
@@ -166,10 +169,26 @@ resolve_known_sukisu_susfs_rejects() {
       [[ "${reject_relatives[0]}" == "kernel/core/init.c.rej" ]] || return 1
       ;;
     3)
+      if [[ "${reject_relatives[0]}" == "kernel/core/init.c.rej" ]] && \
+         [[ "${reject_relatives[1]}" == "kernel/feature/kernel_umount.c.rej" ]] && \
+         [[ "${reject_relatives[2]}" == "kernel/policy/allowlist.c.rej" ]]; then
+        has_policy_drift=1
+      elif [[ "${reject_relatives[0]}" == "kernel/core/init.c.rej" ]] && \
+           [[ "${reject_relatives[1]}" == "kernel/include/ksu.h.rej" ]] && \
+           [[ "${reject_relatives[2]}" == "kernel/supercall/dispatch.c.rej" ]]; then
+        has_info_flag_drift=1
+      else
+        return 1
+      fi
+      ;;
+    5)
       [[ "${reject_relatives[0]}" == "kernel/core/init.c.rej" ]] || return 1
       [[ "${reject_relatives[1]}" == "kernel/feature/kernel_umount.c.rej" ]] || return 1
-      [[ "${reject_relatives[2]}" == "kernel/policy/allowlist.c.rej" ]] || return 1
+      [[ "${reject_relatives[2]}" == "kernel/include/ksu.h.rej" ]] || return 1
+      [[ "${reject_relatives[3]}" == "kernel/policy/allowlist.c.rej" ]] || return 1
+      [[ "${reject_relatives[4]}" == "kernel/supercall/dispatch.c.rej" ]] || return 1
       has_policy_drift=1
+      has_info_flag_drift=1
       ;;
     *)
       return 1
@@ -178,6 +197,13 @@ resolve_known_sukisu_susfs_rejects() {
 
   grep -q 'ksu_init_symbol_resolver' "${ksu_repo_dir}/kernel/core/init.c.rej" || return 1
   grep -q 'ksu_syscall_hook_manager_init' "${ksu_repo_dir}/kernel/core/init.c.rej" || return 1
+
+  if [[ "$has_info_flag_drift" -eq 1 ]]; then
+    grep -Fq 'extern bool ksu_late_loaded;' "${ksu_repo_dir}/kernel/include/ksu.h.rej" || return 1
+    grep -Fq 'extern bool ksu_bundled;' "${ksu_repo_dir}/kernel/include/ksu.h.rej" || return 1
+    grep -Fq 'KSU_GET_INFO_FLAG_BUNDLED' "${ksu_repo_dir}/kernel/supercall/dispatch.c.rej" || return 1
+    grep -Fq 'KSU_GET_INFO_FLAG_LATE_LOAD' "${ksu_repo_dir}/kernel/supercall/dispatch.c.rej" || return 1
+  fi
 
   if [[ "$has_policy_drift" -eq 1 ]]; then
     grep -Fq 'Webview zygote forked from zygote: zygote -> webview_zygote' \
@@ -194,6 +220,20 @@ resolve_known_sukisu_susfs_rejects() {
   grep -Fq '#include <linux/susfs.h>' "$init_file" || return 1
   grep -Fq 'ksu_init_symbol_resolver();' "$init_file" || return 1
   grep -Fq 'ksu_syscall_hook_manager_init();' "$init_file" || return 1
+
+  if [[ "$has_info_flag_drift" -eq 1 ]]; then
+    test -f "$ksu_header_file" || return 1
+    test -f "$dispatch_file" || return 1
+    if grep -Eq 'extern bool ksu_(late_loaded|bundled);' "$ksu_header_file"; then
+      return 1
+    fi
+    if grep -Fq 'KSU_GET_INFO_FLAG_BUNDLED' "$dispatch_file"; then
+      return 1
+    fi
+    if grep -Fq 'KSU_GET_INFO_FLAG_LATE_LOAD' "$dispatch_file"; then
+      return 1
+    fi
+  fi
 
   test -f "$kbuild_file" || return 1
   test -f "$symbol_resolver_file" || return 1
@@ -251,7 +291,7 @@ resolve_known_sukisu_susfs_rejects() {
   fi
 
   rm -f "${reject_files[@]}"
-  echo "[+] Resolved recognized SukiSU Ultra UTS-spoof/KPM resolver/policy drift in the SUSFS patch."
+  echo "[+] Resolved recognized SukiSU Ultra UTS-spoof/KPM resolver/info-flag/policy drift in the SUSFS patch."
 }
 
 patch_kernelsu_for_susfs() {

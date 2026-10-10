@@ -270,6 +270,8 @@ grep -Fq -- '-bool ksu_bundled = false;' "$SUKISU_SUSFS_COMPAT_PATCH" \
   || fail "SukiSU SUSFS/KPM compatibility patch does not remove stale bundled state"
 grep -Fq "ksu_(late_loaded|bundled)" "$SUSFS_APPLY_SCRIPT" \
   || fail "SukiSU SUSFS drift resolver does not reject stale late-load state"
+grep -Fq 'KSU_GET_INFO_FLAG_LATE_LOAD' "$SUSFS_APPLY_SCRIPT" \
+  || fail "SukiSU SUSFS drift resolver does not reject stale get_info late-load flags"
 test -f "$SUKISU_SUSFS_POLICY_COMPAT_PATCH" \
   || fail "SUSFS integration is missing the guarded SukiSU policy compatibility patch"
 grep -Fq 'webview_zygote (controlled by feature policy)' "$SUKISU_SUSFS_POLICY_COMPAT_PATCH" \
@@ -278,8 +280,12 @@ grep -Fq 'ksu_get_manager_appid() == uid % PER_USER_RANGE' "$SUKISU_SUSFS_POLICY
   || fail "SukiSU policy compatibility patch does not resolve allowlist drift"
 grep -Fq 'kernel/feature/kernel_umount.c.rej' "$SUSFS_APPLY_SCRIPT" \
   || fail "SukiSU drift resolver does not guard the kernel umount reject"
+grep -Fq 'kernel/include/ksu.h.rej' "$SUSFS_APPLY_SCRIPT" \
+  || fail "SukiSU drift resolver does not guard the stale include/ksu.h reject"
 grep -Fq 'kernel/policy/allowlist.c.rej' "$SUSFS_APPLY_SCRIPT" \
   || fail "SukiSU drift resolver does not guard the allowlist reject"
+grep -Fq 'kernel/supercall/dispatch.c.rej' "$SUSFS_APPLY_SCRIPT" \
+  || fail "SukiSU drift resolver does not guard the stale supercall dispatch reject"
 grep -Fq 'SukiSU KPM symbol resolver is not linked into kernelsu.o.' "${SCRIPT_DIR}/../lib/verify.sh" \
   || fail "KPM source verification does not check symbol resolver linkage"
 grep -Fq '"${KSU_DRIVER_DIR}/kernelsu/kernelsu.o"' "$COMPILE_SCRIPT" \
