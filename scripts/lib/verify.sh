@@ -280,7 +280,7 @@ verify_nomount_source_integration() {
     echo "::error::$fs_dir/Kconfig does not include the NoMount Kconfig."
     exit 1
   }
-  grep -Fq "#define NOMOUNT_VERSION \"${NOMOUNT_VERSION}\"" "$fs_dir/nomount/nomount.h" || {
+  grep -Eq "^[[:space:]]*#define[[:space:]]+NOMOUNT_(BASE_)?VERSION[[:space:]]+\"${NOMOUNT_VERSION}\"([[:space:]]|$)" "$fs_dir/nomount/nomount.h" || {
     echo "::error::Integrated NoMount headers do not report expected version ${NOMOUNT_VERSION}."
     exit 1
   }
