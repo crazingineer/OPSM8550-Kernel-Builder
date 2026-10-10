@@ -71,7 +71,10 @@ install_nomount() {
     exit 1
   }
 
-  version="$(sed -nE 's/^#define NOMOUNT_VERSION "([^"]+)"/\1/p' "$repo_dir/kernel/src/nomount.h" | head -n 1)"
+  version="$(sed -nE 's/^[[:space:]]*#define[[:space:]]+NOMOUNT_VERSION[[:space:]]+"([^"]+)".*/\1/p' "$repo_dir/kernel/src/nomount.h" | head -n 1)"
+  if [[ -z "$version" ]]; then
+    version="$(sed -nE 's/^[[:space:]]*#define[[:space:]]+NOMOUNT_BASE_VERSION[[:space:]]+"([^"]+)".*/\1/p' "$repo_dir/kernel/src/nomount.h" | head -n 1)"
+  fi
   if [[ -z "$version" ]]; then
     echo "::error::Could not detect the integrated NoMount version."
     exit 1
