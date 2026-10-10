@@ -130,9 +130,10 @@ all three builds under the same immutable release tag.
 
 KPM is available only through the dedicated SukiSU Ultra presets because current
 ReSukiSU no longer supports it. The pipeline resolves SukiSU Ultra to an exact
-`main` commit, checks its KPM sources and Kbuild wiring, and enables `CONFIG_KPM`,
+commit, checks its KPM sources and Kbuild wiring, and enables `CONFIG_KPM`,
 `CONFIG_KALLSYMS`, and `CONFIG_KALLSYMS_ALL`. The SUSFS presets additionally
-resolve and apply the matching SUSFS branch at an exact commit. The four-feature
+pin a tested SukiSU revision and resolve/apply the matching SUSFS branch at an
+exact commit. The four-feature
 preset also resolves NoMount at an exact commit and enables `CONFIG_KEYS` and
 `CONFIG_NOMOUNT`. Validation mode compiles the KPM, SUSFS, VFS, and NoMount
 integration objects and checks their exported signatures; a full build repeats
